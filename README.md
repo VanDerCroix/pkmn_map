@@ -11,6 +11,8 @@ The implemented logic is a simple task tracking tool.
 
 ```
 npm install
+SET DEBUG=express-example:* & node bin/www
+SET DEBUG=express-example:* & npm run devstart
 npm start
 ```
 

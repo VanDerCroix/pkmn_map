@@ -1,0 +1,76 @@
+extends layout
+
+block map
+  style.
+    #map {
+      width: 100%;
+      height: 500px;
+    }
+
+  h3 Markers Example
+
+  #map
+
+  script.
+    var map;
+    var superchargers = [
+    {
+      location: '1',
+      longitude: -77.1255054862554,
+      latitude: -12.224398245883183},
+    {
+      location: '2',
+      longitude: -77.1255054862554,
+      latitude: -12.24682153928547},
+    {
+      location: '3',
+      longitude: -77.10249019404857,
+      latitude: -12.245730110996908},
+    {
+      location: '4',
+      longitude: -77.10249019404857,
+      latitude: -12.22330869305012},
+    {
+      location: '5',
+      longitude: -77.1255054862554,
+      latitude: -12.224398245883183}
+    ];
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: -12.128227904048124, lng: -76.98734767766395 },
+        zoom: 10
+      });
+
+      //- superchargers.forEach(function(sc) {
+      //-   var marker = new google.maps.Marker({
+      //-     position: new google.maps.LatLng(sc.latitude, sc.longitude),
+      //-     map: map,
+      //-     title: sc.location,
+      //-     animation: google.maps.Animation.DROP
+      //-   });
+      //- });
+      map.data.loadGeoJson('/lima_ver1.geojson');
+      //- map.data.loadGeoJson('/parks2.geojson');
+      map.data.setStyle(function (feature) {
+        var color = feature.getProperty('fill');
+        var fillOpacity = feature.getProperty('fill-opacity');
+        var strokeColor = feature.getProperty('stroke');
+        var strokeWidth = feature.getProperty('stroke-width');
+        var strokeOpacity = feature.getProperty('stroke-opacity');
+        return {
+          fillColor: color,
+          fillOpacity: fillOpacity,
+          strokeWeight: 2,
+          strokeColor: strokeColor,
+          strokeOpacity: 0.8
+        };
+      });
+      //- alert(map.data.getControls().length);
+      google.maps.event.addListener(map, 'click', function(event) {
+        //- addMarker(event.latLng, map);
+        alert(typeof event);
+      });
+    }
+
+  script(src='https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAR1gncYPE4fzlkB6hbGvta921qV1sG4X0&callback=initMap')
