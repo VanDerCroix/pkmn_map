@@ -2,14 +2,18 @@ extends layout
 
 block map
   style.
+    #map {
+      display: flex;
+      flex-wrap: wrap;
+    }
     @media only screen and (min-width: 320px) {
-      #map { height: 800px; }
+      #map { height: 1000px; }
     }
     @media only screen and (min-width: 480px) {
-      #map { height: 800px; }
+      #map { height: 1000px; }
     }
     @media only screen and (min-width: 768px) {
-      #map { height: 500px; }
+      #map { height: 1000px; }
     }
     @media only screen and (min-width: 992px) {
       #map { height: 500px; }
@@ -20,61 +24,72 @@ block map
     h3, p {
       text-align: center;
     }
+    #markerLayer img {
+      border: 2px solid red !important;
+      width: 85% !important;
+      height: 90% !important;
+      border-radius: 5px;
+    }
 
   h3 Celdas S2 tamaño 12, areas verdes y gimnasios de Lima
 
   .row
-    #map.col-xs-10.col-xs-offset-1.col-md-10.col-md-offset-1
+    #map.col-xs-12.col-md-10.col-md-offset-1
 
   br
-  p En esta primera version del mapa, he incluido todos los distritos que pude, ya que no es facil recolectar la data de los gimnasios, ya que desarrollé esta web en mi tiempo libre.
-  br
-  p VanDerCroix
+  p En esta primera version del mapa, he incluido todos los distritos que pude, ya que no es facil recolectar la data de los gimnasios.
+  h3 VanDerCroix
 
   script.
     var map;
-    //- var superchargers = [
-    //- {
-    //-   location: '1',
-    //-   longitude: -77.1255054862554,
-    //-   latitude: -12.224398245883183}
-    //- ];
-    //- superchargers.forEach(function(sc) {
-    //- var marker = new google.maps.Marker({
-    //- position: new google.maps.LatLng(sc.latitude, sc.longitude),
-    //- map: map,
-    //- title: sc.location,
-    //- animation: google.maps.Animation.DROP
-    //- });
-    //- });
 
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: -12.008227904048124, lng: -77.10734767766395 },
-        zoom: 10
+        zoom: 11
       });
 
-      map.data.loadGeoJson('/lima_ver1.geojson');
-      //- map.data.loadGeoJson('/parks2.geojson');
+      map.data.loadGeoJson('/cells.geojson');
+      map.data.loadGeoJson('/parks.geojson');
       map.data.setStyle(function (feature) {
+        var click = feature.getProperty('clickable');
         var color = feature.getProperty('fill');
         var fillOpacity = feature.getProperty('fill-opacity');
         var strokeColor = feature.getProperty('stroke');
         var strokeWidth = feature.getProperty('stroke-width');
         var strokeOpacity = feature.getProperty('stroke-opacity');
         return {
+          clickable: false,
           fillColor: color,
           fillOpacity: fillOpacity,
-          strokeWeight: 2,
+          strokeWeight: strokeWidth,
           strokeColor: strokeColor,
-          strokeOpacity: 0.8
+          strokeOpacity: strokeOpacity
         };
       });
-      //- alert(map.data.getControls().length);
-      google.maps.event.addListener(map, 'click', function(event) {
-        //- addMarker(event.latLng, map);
-        alert(typeof event);
+
+      //- var layer = new google.maps.FusionTablesLayer({
+      //-   query: {
+      //-     select: 'latitude',
+      //-     from: '1cEgeJ7fZFBoyBVYSr6M2kmsZW2d74JllfCZO-ep7'
+      //-   }
+      //- });
+      //- layer.setMap(map);
+      layer = new google.maps.FusionTablesLayer({
+        map: map,
+        heatmap: { enabled: false },
+        query: {
+          select: "col7",
+          from: "1cEgeJ7fZFBoyBVYSr6M2kmsZW2d74JllfCZO-ep7",
+          where: ""
+        },
+        options: {
+          styleId: 12,
+          templateId: 14,
+          zIndex: google.maps.Marker.MAX_ZINDEX + 1
+        }
       });
+      //- add parks
     }
 
-  script(src='https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAR1gncYPE4fzlkB6hbGvta921qV1sG4X0&callback=initMap')
+  script(async defer src='https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAR1gncYPE4fzlkB6hbGvta921qV1sG4X0&callback=initMap')
