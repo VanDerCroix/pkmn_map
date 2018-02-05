@@ -1,0 +1,153 @@
+extends layout
+
+block map
+  style.
+    #map {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    @media only screen and (min-width: 320px) {
+      #map { height: 1000px; }
+    }
+    @media only screen and (min-width: 480px) {
+      #map { height: 1000px; }
+    }
+    @media only screen and (min-width: 768px) {
+      #map { height: 1000px; }
+    }
+    @media only screen and (min-width: 992px) {
+      #map { height: 500px; }
+    }
+    @media only screen and (min-width: 1400px) {
+      #map { height: 700px; }
+    }
+    h3, p {
+      text-align: center;
+    }
+    #markerLayer img {
+      border: 2px solid red !important;
+      width: 85% !important;
+      height: 90% !important;
+      border-radius: 5px;
+    }
+
+  h3 Celdas S2 tamaño 12, areas verdes y gimnasios de Lima
+
+  .row
+    #map.col-xs-12.col-md-10.col-md-offset-1
+
+  br
+  p Dynamic drawing
+  h3 VanDerCroix
+
+  script(type='text/javascript').
+    const RADIO = 2000;
+    var gyms = !{gyms_file};
+    var parks = !{parks_file};
+    var map;
+    var parkPolygons = [];
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: -12.008227904048124, lng: -77.10734767766395 },
+        zoom: 11
+      });
+
+      map.data.loadGeoJson('/cells.geojson');
+      //- map.data.loadGeoJson('/parks.geojson');
+      map.data.setStyle(function (feature) {
+        var click = feature.getProperty('clickable');
+        var color = feature.getProperty('fill');
+        var fillOpacity = feature.getProperty('fill-opacity');
+        var strokeColor = feature.getProperty('stroke');
+        var strokeWidth = feature.getProperty('stroke-width');
+        var strokeOpacity = feature.getProperty('stroke-opacity');
+        return {
+          clickable: false,
+          fillColor: color,
+          fillOpacity: fillOpacity,
+          strokeWeight: strokeWidth,
+          strokeColor: strokeColor,
+          strokeOpacity: strokeOpacity
+        };
+      });
+      map.addListener('click', function(e) {
+        drawParks(e.latLng, map);
+        drawGyms(e.latLng, map);
+      });
+    }
+    //- draw parks
+    //- collect parks in array
+    //- get nearby gyms
+    //- before drawing gyms, check if they are inside a park
+    //- draw gyms, elegible gyms with another style
+    function drawParks(location, map) {
+      var polyCoords, inRadio;
+      parks.features.reduceRight((acc, park, index, array) => {
+        inRadio = false;
+        polyCoords = [];
+        park.geometry.coordinates[0].forEach((coord) => {
+          var nodeLocation = new google.maps.LatLng(coord[1], coord[0]);
+          polyCoords.push(nodeLocation);
+          if(!inRadio)
+            if(google.maps.geometry.spherical.computeDistanceBetween(location, nodeLocation) < RADIO) {
+              inRadio = true;
+            }
+        });
+        if(inRadio) {
+          var parkPolygon = new google.maps.Polygon({
+            clickable: false,
+            paths: polyCoords,
+            strokeColor: '#0b5614',
+            strokeOpacity: 0.8,
+            strokeWeight: 2.5,
+            fillColor: '#408040',
+            fillOpacity: 0.6,
+            map: map
+          });
+          //- splice from parks, add to array
+          array.splice(index, 1);
+          parkPolygons.push(parkPolygon);
+        }
+      }, []);
+      //- alert("drawn parks "+parkPolygons.length+"\ntotal parks left "+parks.features.length);
+    }
+    function drawGyms(location, map) {
+      var fillColor, strokeColor;
+      gyms.features.reduceRight((acc, gym, index, array) => {
+        fillColor = 'white';
+        strokeColor = 'gray';
+        var gymLocation = new google.maps.LatLng(gym.geometry.coordinates[1], gym.geometry.coordinates[0]);
+        if(google.maps.geometry.spherical.computeDistanceBetween(location, gymLocation) < RADIO) {
+          for(var park of parkPolygons) {
+            if(google.maps.geometry.poly.containsLocation(gymLocation, park)) {
+              fillColor = '#875575';
+              strokeColor= '#493c4b';
+              break;
+            }
+          }
+          var newGym = new google.maps.Marker({
+            position: gymLocation,
+            map: map,
+            icon: {
+              path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+              fillColor: fillColor,
+              fillOpacity: 1,
+              strokeColor: strokeColor,
+              strokeWeight: 2,
+              scale: 5
+            }
+          });
+          var contentStr = '<center><p>'+gym.properties.name+'</p></center>';
+          var infoWindow = new google.maps.InfoWindow({
+            content: contentStr
+          });
+          newGym.addListener('click', () => {
+            infoWindow.open(map, newGym);
+          });
+          array.splice(index, 1);
+        }
+      }, []);
+    }
+
+  script(async defer src='https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAR1gncYPE4fzlkB6hbGvta921qV1sG4X0&libraries=geometry&callback=initMap')

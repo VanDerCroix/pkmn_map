@@ -68,13 +68,6 @@ block map
         };
       });
 
-      //- var layer = new google.maps.FusionTablesLayer({
-      //-   query: {
-      //-     select: 'latitude',
-      //-     from: '1cEgeJ7fZFBoyBVYSr6M2kmsZW2d74JllfCZO-ep7'
-      //-   }
-      //- });
-      //- layer.setMap(map);
       layer = new google.maps.FusionTablesLayer({
         map: map,
         heatmap: { enabled: false },
@@ -85,11 +78,9 @@ block map
         },
         options: {
           styleId: 12,
-          templateId: 14,
-          zIndex: google.maps.Marker.MAX_ZINDEX + 1
+          templateId: 14
         }
       });
-      //- add parks
     }
 
   script(async defer src='https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAR1gncYPE4fzlkB6hbGvta921qV1sG4X0&callback=initMap')
