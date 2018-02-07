@@ -21,7 +21,7 @@ block map
     @media only screen and (min-width: 1400px) {
       #map { height: 700px; }
     }
-    h3, p {
+    h3, h4, p {
       text-align: center;
     }
     #markerLayer img {
@@ -31,7 +31,8 @@ block map
       border-radius: 5px;
     }
 
-  h3 Celdas S2 tamaño 12, areas verdes y gimnasios de Lima
+  //- h3 Celdas S2 tamaño 12, areas verdes y gimnasios de Lima
+  //- h4 Click/Tap en el mapa para mostrar gimnasios y areas verdes
 
   .row
     #map.col-xs-12.col-md-10.col-md-offset-1
@@ -46,11 +47,14 @@ block map
     var parks = !{parks_file};
     var map;
     var parkPolygons = [];
+    var infoWindow;
 
     function initMap() {
+      infoWindow = new google.maps.InfoWindow();
+      var startLocation = new google.maps.LatLng(-12.048585, -77.0358893);
       map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: -12.008227904048124, lng: -77.10734767766395 },
-        zoom: 11
+        center: startLocation,
+        zoom: 14
       });
 
       map.data.loadGeoJson('/cells.geojson');
@@ -75,6 +79,9 @@ block map
         drawParks(e.latLng, map);
         drawGyms(e.latLng, map);
       });
+      //start draw
+      drawParks(startLocation, map);
+      drawGyms(startLocation, map);
     }
     //- draw parks
     //- collect parks in array
@@ -105,13 +112,13 @@ block map
             fillOpacity: 0.6,
             map: map
           });
-          //- splice from parks, add to array
           array.splice(index, 1);
           parkPolygons.push(parkPolygon);
         }
       }, []);
       //- alert("drawn parks "+parkPolygons.length+"\ntotal parks left "+parks.features.length);
     }
+    //- fix icons size for mobile
     function drawGyms(location, map) {
       var fillColor, strokeColor;
       gyms.features.reduceRight((acc, gym, index, array) => {
@@ -139,10 +146,11 @@ block map
             }
           });
           var contentStr = '<center><p>'+gym.properties.name+'</p></center>';
-          var infoWindow = new google.maps.InfoWindow({
-            content: contentStr
-          });
-          newGym.addListener('click', () => {
+          //- var infoWindow = new google.maps.InfoWindow({
+            //- content: contentStr
+          //- });
+          google.maps.event.addListener(newGym, 'click', () => {
+            infoWindow.setContent(contentStr);
             infoWindow.open(map, newGym);
           });
           array.splice(index, 1);
